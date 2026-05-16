@@ -16,11 +16,28 @@ use crate::status::{LaunchStatus, StatusStore};
 pub enum CodexLaunch {
     Process {
         command: Vec<String>,
+        wait_strategy: ProcessWaitStrategy,
     },
     PackagedActivation {
         app_user_model_id: String,
         arguments: String,
+        process_id: Option<u32>,
     },
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum ProcessWaitStrategy {
+    TrackedChild,
+    ExternalWaitCommand,
+}
+
+impl CodexLaunch {
+    pub fn process_id(&self) -> Option<u32> {
+        match self {
+            Self::PackagedActivation { process_id, .. } => *process_id,
+            Self::Process { .. } => None,
+        }
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -251,31 +268,46 @@ impl LaunchHooks for DefaultLaunchHooks {
                 let CodexLaunch::PackagedActivation {
                     app_user_model_id,
                     arguments,
+                    ..
                 } = &activation
                 else {
                     unreachable!();
                 };
-                activate_packaged_app(app_user_model_id, arguments).await?;
-                return Ok(activation);
+                let env = codex_process_environment();
+                let process_id =
+                    activate_packaged_app_with_environment(app_user_model_id, arguments, &env)
+                        .await?;
+                return Ok(match activation {
+                    CodexLaunch::PackagedActivation {
+                        app_user_model_id,
+                        arguments,
+                        ..
+                    } => CodexLaunch::PackagedActivation {
+                        app_user_model_id,
+                        arguments,
+                        process_id: Some(process_id),
+                    },
+                    CodexLaunch::Process { .. } => unreachable!(),
+                });
             }
         }
 
         if app_dir.extension().and_then(|value| value.to_str()) == Some("app") {
-            Command::new("open")
-                .arg("-a")
-                .arg(app_dir)
-                .arg("--args")
-                .args(build_codex_arguments(debug_port))
+            let command = build_macos_open_command(app_dir, debug_port);
+            let executable = command
+                .first()
+                .ok_or_else(|| anyhow::anyhow!("macOS open command is empty"))?;
+            let child = Command::new(executable)
+                .args(&command[1..])
                 .envs(codex_process_environment())
                 .stdout(Stdio::null())
                 .stderr(Stdio::null())
                 .spawn()
-                .context("failed to launch macOS Codex app")?
-                .wait()
-                .await
-                .context("failed to wait for macOS open command")?;
+                .context("failed to launch macOS Codex app")?;
+            *self.child.lock().await = Some(child);
             return Ok(CodexLaunch::Process {
-                command: build_macos_open_command(app_dir, debug_port),
+                command,
+                wait_strategy: ProcessWaitStrategy::ExternalWaitCommand,
             });
         }
 
@@ -291,7 +323,10 @@ impl LaunchHooks for DefaultLaunchHooks {
             .spawn()
             .with_context(|| format!("failed to launch Codex executable {executable}"))?;
         *self.child.lock().await = Some(child);
-        Ok(CodexLaunch::Process { command })
+        Ok(CodexLaunch::Process {
+            command,
+            wait_strategy: ProcessWaitStrategy::TrackedChild,
+        })
     }
 
     async fn inject(&self, debug_port: u16, helper_port: u16) -> anyhow::Result<()> {
@@ -308,7 +343,12 @@ impl LaunchHooks for DefaultLaunchHooks {
                 }
                 Ok(())
             }
-            CodexLaunch::PackagedActivation { .. } => Ok(()),
+            CodexLaunch::PackagedActivation { process_id, .. } => {
+                if let Some(process_id) = process_id {
+                    wait_for_windows_process_id(*process_id).await?;
+                }
+                Ok(())
+            }
         }
     }
 
@@ -347,6 +387,7 @@ pub fn build_packaged_activation(app_dir: &Path, debug_port: u16) -> Option<Code
     Some(CodexLaunch::PackagedActivation {
         app_user_model_id: crate::app_paths::packaged_app_user_model_id(app_dir)?,
         arguments: command_line_arguments(&build_codex_arguments(debug_port)),
+        process_id: None,
     })
 }
 
@@ -404,15 +445,102 @@ async fn try_inject(debug_port: u16, helper_port: u16) -> anyhow::Result<()> {
     .await
 }
 
-fn build_macos_open_command(app_dir: &Path, debug_port: u16) -> Vec<String> {
+pub fn build_macos_open_command(app_dir: &Path, debug_port: u16) -> Vec<String> {
     let mut command = vec![
         "open".to_string(),
+        "-W".to_string(),
         "-a".to_string(),
         app_dir.to_string_lossy().to_string(),
         "--args".to_string(),
     ];
     command.extend(build_codex_arguments(debug_port));
     command
+}
+
+pub fn with_temporary_proxy_environment<T>(
+    env: &HashMap<String, String>,
+    run: impl FnOnce() -> T,
+) -> T {
+    let previous = apply_proxy_environment(env);
+    let result = run();
+    restore_proxy_environment(previous);
+    result
+}
+
+async fn activate_packaged_app_with_environment(
+    app_user_model_id: &str,
+    arguments: &str,
+    env: &HashMap<String, String>,
+) -> anyhow::Result<u32> {
+    let previous = apply_proxy_environment(env);
+    let result = activate_packaged_app(app_user_model_id, arguments).await;
+    restore_proxy_environment(previous);
+    result
+}
+
+fn apply_proxy_environment(
+    env: &HashMap<String, String>,
+) -> [(&'static str, Option<std::ffi::OsString>); 3] {
+    let keys = ["HTTP_PROXY", "HTTPS_PROXY", "ALL_PROXY"];
+    let previous = keys.map(|key| (key, std::env::var_os(key)));
+    for key in keys {
+        if let Some(value) = env.get(key) {
+            set_env_var(key, value);
+        }
+    }
+    previous
+}
+
+fn restore_proxy_environment(previous: [(&'static str, Option<std::ffi::OsString>); 3]) {
+    for (key, value) in previous {
+        match value {
+            Some(value) => set_env_var(key, value),
+            None => remove_env_var(key),
+        }
+    }
+}
+
+#[cfg(windows)]
+async fn wait_for_windows_process_id(process_id: u32) -> anyhow::Result<()> {
+    let script = format!(
+        "Wait-Process -Id {} -ErrorAction SilentlyContinue",
+        process_id
+    );
+    let _ = Command::new("powershell.exe")
+        .arg("-NoProfile")
+        .arg("-NonInteractive")
+        .arg("-Command")
+        .arg(script)
+        .stdout(Stdio::null())
+        .stderr(Stdio::null())
+        .status()
+        .await
+        .with_context(|| format!("failed to wait for Windows process id {process_id}"))?;
+    Ok(())
+}
+
+#[cfg(not(windows))]
+async fn wait_for_windows_process_id(process_id: u32) -> anyhow::Result<()> {
+    anyhow::bail!("cannot wait for Windows process id {process_id} on this platform")
+}
+
+fn set_env_var<K, V>(key: K, value: V)
+where
+    K: AsRef<std::ffi::OsStr>,
+    V: AsRef<std::ffi::OsStr>,
+{
+    unsafe {
+        std::env::set_var(key, value);
+    }
+}
+
+fn remove_env_var<K>(key: K)
+where
+    K: AsRef<std::ffi::OsStr>,
+{
+    unsafe {
+        std::env::remove_var(key);
+    }
 }
 
 fn launch_status(

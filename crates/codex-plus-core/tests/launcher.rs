@@ -8,7 +8,8 @@ use codex_plus_core::app_paths::{
 };
 use codex_plus_core::launcher::{
     CodexLaunch, LaunchHooks, LaunchOptions, build_codex_arguments, build_codex_command,
-    build_packaged_activation, codex_process_environment_from, launch_and_inject_with_hooks,
+    build_macos_open_command, build_packaged_activation, codex_process_environment_from,
+    launch_and_inject_with_hooks, with_temporary_proxy_environment,
 };
 use codex_plus_core::ports::select_platform_loopback_port_with;
 use codex_plus_core::proxy::{detect_local_proxy_with, has_proxy_environment};
@@ -117,8 +118,74 @@ fn launcher_constructs_windows_packaged_activation_without_real_app() {
             app_user_model_id: "OpenAI.Codex_2p2nqsd0c76g0!App".to_string(),
             arguments: "--remote-debugging-port=9229 --remote-allow-origins=http://127.0.0.1:9229"
                 .to_string(),
+            process_id: None,
         }
     );
+}
+
+#[test]
+fn launcher_packaged_activation_can_preserve_process_id() {
+    let launch = CodexLaunch::PackagedActivation {
+        app_user_model_id: "OpenAI.Codex_2p2nqsd0c76g0!App".to_string(),
+        arguments: "--remote-debugging-port=9229".to_string(),
+        process_id: Some(4242),
+    };
+
+    assert_eq!(launch.process_id(), Some(4242));
+}
+
+#[test]
+fn launcher_macos_open_command_waits_for_app_exit() {
+    let command = build_macos_open_command(Path::new("/Applications/Codex.app"), 9229);
+
+    assert_eq!(command[0], "open");
+    assert!(command.contains(&"-W".to_string()));
+    assert!(command.contains(&"-a".to_string()));
+    assert!(command.contains(&"--args".to_string()));
+    assert!(command.contains(&"--remote-debugging-port=9229".to_string()));
+}
+
+#[test]
+fn launcher_packaged_activation_temporarily_applies_proxy_environment() {
+    temp_env_remove("HTTP_PROXY");
+    temp_env_remove("HTTPS_PROXY");
+    temp_env_remove("ALL_PROXY");
+    temp_env_set("UNRELATED_PROXY_TEST", "keep");
+    let mut env = HashMap::new();
+    env.insert(
+        "HTTP_PROXY".to_string(),
+        "http://127.0.0.1:7897".to_string(),
+    );
+    env.insert(
+        "HTTPS_PROXY".to_string(),
+        "http://127.0.0.1:7897".to_string(),
+    );
+    env.insert("ALL_PROXY".to_string(), "http://127.0.0.1:7897".to_string());
+
+    let seen = with_temporary_proxy_environment(&env, || {
+        (
+            std::env::var("HTTP_PROXY").ok(),
+            std::env::var("HTTPS_PROXY").ok(),
+            std::env::var("ALL_PROXY").ok(),
+        )
+    });
+
+    assert_eq!(
+        seen,
+        (
+            Some("http://127.0.0.1:7897".to_string()),
+            Some("http://127.0.0.1:7897".to_string()),
+            Some("http://127.0.0.1:7897".to_string()),
+        )
+    );
+    assert!(std::env::var("HTTP_PROXY").is_err());
+    assert!(std::env::var("HTTPS_PROXY").is_err());
+    assert!(std::env::var("ALL_PROXY").is_err());
+    assert_eq!(
+        std::env::var("UNRELATED_PROXY_TEST").ok().as_deref(),
+        Some("keep")
+    );
+    temp_env_remove("UNRELATED_PROXY_TEST");
 }
 
 #[test]
@@ -170,6 +237,7 @@ async fn launch_lifecycle_runs_sync_before_launch_writes_success_and_shutdowns_o
         })
         .with_launch_result(CodexLaunch::Process {
             command: vec!["codex".to_string()],
+            wait_strategy: codex_plus_core::launcher::ProcessWaitStrategy::TrackedChild,
         });
 
     let handle = launch_and_inject_with_hooks(
@@ -268,6 +336,7 @@ impl FakeHooks {
             settings: BackendSettings::default(),
             launch_result: CodexLaunch::Process {
                 command: vec!["codex".to_string()],
+                wait_strategy: codex_plus_core::launcher::ProcessWaitStrategy::TrackedChild,
             },
             inject_error: None,
         }
@@ -290,6 +359,18 @@ impl FakeHooks {
 
     fn event(&self, event: impl Into<String>) {
         self.events.lock().unwrap().push(event.into());
+    }
+}
+
+fn temp_env_set(key: &str, value: &str) {
+    unsafe {
+        std::env::set_var(key, value);
+    }
+}
+
+fn temp_env_remove(key: &str) {
+    unsafe {
+        std::env::remove_var(key);
     }
 }
 

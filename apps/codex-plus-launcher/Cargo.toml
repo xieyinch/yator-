@@ -11,5 +11,7 @@ path = "src/main.rs"
 
 [dependencies]
 anyhow.workspace = true
+async-trait = "0.1"
 codex-plus-core = { path = "../../crates/codex-plus-core" }
+codex-plus-data = { path = "../../crates/codex-plus-data" }
 tokio.workspace = true

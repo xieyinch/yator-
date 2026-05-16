@@ -390,7 +390,9 @@ name = "codex-plus-launcher"
 version = "1.0.8"
 dependencies = [
  "anyhow",
+ "async-trait",
  "codex-plus-core",
+ "codex-plus-data",
  "tokio",
 ]
 
