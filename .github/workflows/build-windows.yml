@@ -1,0 +1,51 @@
+name: Build Windows
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: write
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install frontend dependencies
+        working-directory: apps/codex-plus-manager
+        run: npm install --package-lock=false
+
+      - name: Build frontend
+        working-directory: apps/codex-plus-manager
+        run: npm run vite:build
+
+      - name: Build Rust binaries
+        run: cargo build --release
+
+      - name: Package exe
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force dist | Out-Null
+          Copy-Item target/release/codex-plus-plus.exe dist/
+          Copy-Item target/release/codex-plus-plus-manager.exe dist/
+          Compress-Archive -Path dist/*.exe -DestinationPath dist/yator-windows-x64.zip -Force
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: yator-windows-x64
+          path: dist/yator-windows-x64.zip
+          retention-days: 90
