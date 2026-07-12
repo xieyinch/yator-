@@ -315,7 +315,7 @@ async fn settings_routes_use_settings_service() {
     let updated = handle_bridge_request(
         ctx.clone(),
         "/settings/set",
-        json!({"providerSyncEnabled": true, "codexAppSessionDelete": false, "codexAppServiceTierControls": true, "codexAppPetRealMouseLook": true}),
+        json!({"providerSyncEnabled": true, "codexAppSessionDelete": false, "codexAppServiceTierControls": true}),
     )
     .await;
     let loaded = handle_bridge_request(ctx, "/settings/get", json!({})).await;
@@ -323,7 +323,6 @@ async fn settings_routes_use_settings_service() {
     assert_eq!(updated["providerSyncEnabled"], true);
     assert_eq!(updated["codexAppSessionDelete"], false);
     assert_eq!(updated["codexAppServiceTierControls"], true);
-    assert_eq!(updated["codexAppPetRealMouseLook"], true);
     assert_eq!(loaded, updated);
 }
 
@@ -372,7 +371,7 @@ async fn runtime_status_devtools_repair_and_ads_routes_are_dispatched() {
     );
     assert_eq!(
         handle_bridge_request(ctx.clone(), "/ads", json!({})).await,
-        json!({"version": 1, "ads": [{"id": "runtime-ad"}]})
+        json!({"version": 1, "ads": []})
     );
     assert_eq!(
         handle_bridge_request(ctx.clone(), "/zed-remote/status", json!({})).await,
@@ -1038,7 +1037,6 @@ impl BridgeSettingsService for FakeSettings {
             "codexAppUpstreamWorktreeCreate",
             "codexAppNativeMenuPlacement",
             "codexAppServiceTierControls",
-            "codexAppPetRealMouseLook",
         ] {
             if let Some(value) = payload.get(key).and_then(Value::as_bool) {
                 raw.insert(key.to_string(), json!(value));
@@ -1131,7 +1129,7 @@ impl BridgeRuntimeService for FakeRuntime {
     }
 
     async fn ads(&self) -> anyhow::Result<Value> {
-        Ok(json!({"version": 1, "ads": [{"id": "runtime-ad"}]}))
+        Ok(json!({"version": 1, "ads": []}))
     }
 
     async fn zed_remote_status(&self) -> anyhow::Result<Value> {

@@ -353,12 +353,6 @@ impl LaunchHooks for LauncherHooks {
         self.core.inject(debug_port, helper_port).await
     }
 
-    async fn start_bridge_watchdog(&self, debug_port: u16, helper_port: u16) -> anyhow::Result<()> {
-        self.core
-            .start_bridge_watchdog(debug_port, helper_port)
-            .await
-    }
-
     async fn start_computer_use_guard_watchdog(
         &self,
         settings: &codex_plus_core::settings::BackendSettings,
@@ -599,10 +593,6 @@ impl BridgeRuntimeService for LauncherRuntimeService {
         Ok(codex_plus_core::model_catalog::read_codex_model_catalog().await)
     }
 
-    async fn ads(&self) -> anyhow::Result<Value> {
-        codex_plus_core::ads::fetch_ad_list().await
-    }
-
     async fn zed_remote_status(&self) -> anyhow::Result<Value> {
         Ok(codex_plus_core::zed_remote::zed_remote_status())
     }
@@ -820,11 +810,9 @@ mod tests {
     }
 
     #[test]
-    fn launcher_hooks_forward_runtime_watchdogs_and_computer_use_guard_methods() {
+    fn launcher_hooks_forward_computer_use_guard_methods() {
         let source = include_str!("main.rs");
 
-        assert!(source.contains("async fn start_bridge_watchdog"));
-        assert!(source.contains(".start_bridge_watchdog(debug_port, helper_port)"));
         assert!(source.contains("async fn ensure_computer_use_config"));
         assert!(source.contains("self.core.ensure_computer_use_config(settings).await"));
         assert!(source.contains("async fn ensure_plugin_marketplace_config"));

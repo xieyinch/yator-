@@ -6,10 +6,7 @@ use std::path::Path;
 use crate::settings::BackendSettings;
 
 const RENDERER_SCRIPT: &str = include_str!("../../../assets/inject/renderer-inject.js");
-const PET_REAL_MOUSE_SCRIPT: &str = include_str!("../../../assets/inject/pet-real-mouse-inject.js");
 const STEPWISE_SCRIPT: &str = include_str!("../../../assets/inject/stepwise-inject.js");
-const SPONSOR_ALIPAY: &[u8] = include_bytes!("../../../assets/images/sponsor-alipay.jpg");
-const SPONSOR_WECHAT: &[u8] = include_bytes!("../../../assets/images/sponsor-wechat.jpg");
 pub const DIAGNOSTIC_BUILD_ID: &str = "diag-20260518-1";
 
 pub fn renderer_script() -> &'static str {
@@ -20,83 +17,12 @@ pub fn stepwise_script() -> &'static str {
     STEPWISE_SCRIPT
 }
 
-pub fn pet_real_mouse_script() -> &'static str {
-    PET_REAL_MOUSE_SCRIPT
-}
-
-pub fn pet_real_mouse_capability_probe_script() -> &'static str {
-    r#"
-(async () => {
-  const mascot = document.querySelector('[data-avatar-mascot="true"]');
-  if (!mascot) return false;
-  const spriteImages = Array.from(mascot.querySelectorAll("img"));
-  const currentSpriteIsV2 = spriteImages.some((image) =>
-    image.naturalWidth === 1536 && image.naturalHeight === 2288
-  );
-  if (!currentSpriteIsV2) return false;
-  const urls = [
-    ...Array.from(document.scripts || []).map((script) => script.src),
-    ...Array.from(document.querySelectorAll("link[href]") || []).map((link) => link.href),
-    ...performance.getEntriesByType("resource").map((entry) => entry.name),
-  ].filter((url) => url && url.includes("/assets/") && url.split("?")[0].endsWith(".js"));
-  let dispatcherUrl = urls.find((url) => url.includes("vscode-api-"));
-  if (!dispatcherUrl) {
-    for (const url of urls) {
-      try {
-        const source = await fetch(url).then((response) => response.ok ? response.text() : "");
-        const match = source.match(/["'](\.\/(?:assets\/)?vscode-api-[^"']+\.js)["']/);
-        if (match) {
-          dispatcherUrl = new URL(match[1], url).href;
-          break;
-        }
-      } catch {
-      }
-    }
-  }
-  if (!dispatcherUrl) return false;
-  try {
-    const module = await import(dispatcherUrl);
-    return Object.values(module || {}).some((value) => value
-      && typeof value.dispatchHostMessage === "function"
-      && typeof value.subscribe === "function");
-  } catch {
-    return false;
-  }
-})()
-"#
-}
-
-pub fn pet_real_mouse_update_script(x: i32, y: i32) -> String {
-    format!(
-        r#"(() => {{
-  const mascot = document.querySelector('[data-avatar-mascot="true"]');
-  const currentSpriteIsV2 = !!mascot && Array.from(mascot.querySelectorAll("img")).some((image) =>
-    image.naturalWidth === 1536 && image.naturalHeight === 2288
-  );
-  return currentSpriteIsV2
-    && window.__codexPlusPetRealMouseLook?.updateScreenPoint?.({{ x: {x}, y: {y} }}) === true;
-}})()"#
-    )
-}
-
-pub fn pet_real_mouse_stop_script() -> &'static str {
-    "window.__codexPlusPetRealMouseLook?.stop?.();"
-}
-
-pub fn sponsor_image_data_uris() -> Value {
-    json!({
-        "alipay": image_data_uri("image/jpeg", SPONSOR_ALIPAY),
-        "wechat": image_data_uri("image/jpeg", SPONSOR_WECHAT),
-    })
-}
-
 pub fn injection_script(helper_port: u16) -> String {
     injection_script_with_settings(helper_port, &BackendSettings::default())
 }
 
 pub fn injection_script_with_settings(helper_port: u16, settings: &BackendSettings) -> String {
     let helper_url = format!("http://127.0.0.1:{helper_port}");
-    let sponsor_images = sponsor_image_data_uris();
     let image_overlay = image_overlay_config(helper_port, settings);
     let plugin_marketplaces = local_plugin_marketplaces();
     let paste_fix = paste_fix_enabled_config(settings);
@@ -105,7 +31,7 @@ pub fn injection_script_with_settings(helper_port: u16, settings: &BackendSettin
     format!(
         "window.__CODEX_SESSION_DELETE_HELPER__ = {};\nwindow.__CODEX_PLUS_SPONSOR_IMAGES__ = {};\nwindow.__CODEX_PLUS_VERSION__ = {};\nwindow.__CODEX_PLUS_BUILD__ = {};\nwindow.__CODEX_PLUS_IMAGE_OVERLAY__ = {};\nwindow.__CODEX_PLUS_PLUGIN_MARKETPLACES__ = {};\nwindow.__CODEX_PLUS_PASTE_FIX__ = {};\nwindow.__CODEX_PLUS_FORCE_CHINESE_LOCALE__ = {};\nwindow.__CODEX_PLUS_FAST_STARTUP__ = {};\n{}\n{}",
         serde_json::to_string(&helper_url).expect("helper URL should serialize"),
-        serde_json::to_string(&sponsor_images).expect("sponsor images should serialize"),
+        serde_json::to_string(&json!({})).expect("sponsor images should serialize"),
         serde_json::to_string(crate::version::VERSION).expect("version should serialize"),
         serde_json::to_string(DIAGNOSTIC_BUILD_ID).expect("build id should serialize"),
         serde_json::to_string(&image_overlay).expect("image overlay config should serialize"),
