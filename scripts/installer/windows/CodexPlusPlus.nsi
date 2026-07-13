@@ -6,10 +6,10 @@
 !endif
 !define ROOT "..\..\.."
 
-Name "Codex++"
+Name "codx++"
 OutFile "${ROOT}\dist\windows\CodexPlusPlus-${VERSION}-windows-x64-setup.exe"
-InstallDir "$LOCALAPPDATA\Programs\Codex++"
-InstallDirRegKey HKCU "Software\Codex++" "InstallDir"
+InstallDir "$LOCALAPPDATA\Programs\codx++"
+InstallDirRegKey HKCU "Software\codx++" "InstallDir"
 RequestExecutionLevel admin
 SetCompressor /SOLID lzma
 
@@ -36,24 +36,24 @@ Section "Install"
   File "${ROOT}\dist\windows\app\codex-plus-plus.exe"
   File "${ROOT}\dist\windows\app\codex-plus-plus-manager.exe"
 
-  Delete "$DESKTOP\Codex++ 绠＄悊宸ュ叿.lnk"
-  Delete "$SMPROGRAMS\Codex++\Codex++ 绠＄悊宸ュ叿.lnk"
+  Delete "$DESKTOP\codx++ 绠＄悊宸ュ叿.lnk"
+  Delete "$SMPROGRAMS\codx++\codx++ 绠＄悊宸ュ叿.lnk"
 
-  CreateShortcut "$DESKTOP\Codex++.lnk" "$INSTDIR\codex-plus-plus.exe" "" "$INSTDIR\codex-plus-plus.exe"
-  CreateShortcut "$DESKTOP\Codex++ 管理工具.lnk" "$INSTDIR\codex-plus-plus-manager.exe" "" "$INSTDIR\codex-plus-plus-manager.exe"
-  CreateDirectory "$SMPROGRAMS\Codex++"
-  CreateShortcut "$SMPROGRAMS\Codex++\Codex++.lnk" "$INSTDIR\codex-plus-plus.exe" "" "$INSTDIR\codex-plus-plus.exe"
-  CreateShortcut "$SMPROGRAMS\Codex++\Codex++ 管理工具.lnk" "$INSTDIR\codex-plus-plus-manager.exe" "" "$INSTDIR\codex-plus-plus-manager.exe"
-  CreateShortcut "$SMPROGRAMS\Codex++\卸载 Codex++.lnk" "$INSTDIR\uninstall.exe" "" "$INSTDIR\codex-plus-plus-manager.exe"
+  CreateShortcut "$DESKTOP\codx++.lnk" "$INSTDIR\codex-plus-plus.exe" "" "$INSTDIR\codex-plus-plus.exe"
+  CreateShortcut "$DESKTOP\codx++ 管理工具.lnk" "$INSTDIR\codex-plus-plus-manager.exe" "" "$INSTDIR\codex-plus-plus-manager.exe"
+  CreateDirectory "$SMPROGRAMS\codx++"
+  CreateShortcut "$SMPROGRAMS\codx++\codx++.lnk" "$INSTDIR\codex-plus-plus.exe" "" "$INSTDIR\codex-plus-plus.exe"
+  CreateShortcut "$SMPROGRAMS\codx++\codx++ 管理工具.lnk" "$INSTDIR\codex-plus-plus-manager.exe" "" "$INSTDIR\codex-plus-plus-manager.exe"
+  CreateShortcut "$SMPROGRAMS\codx++\卸载 codx++.lnk" "$INSTDIR\uninstall.exe" "" "$INSTDIR\codex-plus-plus-manager.exe"
 
   WriteUninstaller "$INSTDIR\uninstall.exe"
-  WriteRegStr HKCU "Software\Codex++" "InstallDir" "$INSTDIR"
-  WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\Codex++" "DisplayName" "Codex++"
-  WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\Codex++" "DisplayVersion" "${VERSION}"
-  WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\Codex++" "Publisher" "BigPizzaV3"
-  WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\Codex++" "DisplayIcon" "$INSTDIR\codex-plus-plus-manager.exe"
-  WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\Codex++" "InstallLocation" "$INSTDIR"
-  WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\Codex++" "UninstallString" "$INSTDIR\uninstall.exe"
+  WriteRegStr HKCU "Software\codx++" "InstallDir" "$INSTDIR"
+  WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\codx++" "DisplayName" "codx++"
+  WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\codx++" "DisplayVersion" "${VERSION}"
+  WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\codx++" "Publisher" "BigPizzaV3"
+  WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\codx++" "DisplayIcon" "$INSTDIR\codex-plus-plus-manager.exe"
+  WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\codx++" "InstallLocation" "$INSTDIR"
+  WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\codx++" "UninstallString" "$INSTDIR\uninstall.exe"
 SectionEnd
 
 Section "Uninstall"
@@ -62,20 +62,20 @@ Section "Uninstall"
   nsExec::ExecToLog 'taskkill /IM codex-plus-plus-manager.exe /F'
   Pop $0
 
-  Delete "$DESKTOP\Codex++.lnk"
-  Delete "$DESKTOP\Codex++ 管理工具.lnk"
-  Delete "$DESKTOP\Codex++ 绠＄悊宸ュ叿.lnk"
-  Delete "$SMPROGRAMS\Codex++\Codex++.lnk"
-  Delete "$SMPROGRAMS\Codex++\Codex++ 管理工具.lnk"
-  Delete "$SMPROGRAMS\Codex++\Codex++ 绠＄悊宸ュ叿.lnk"
-  Delete "$SMPROGRAMS\Codex++\卸载 Codex++.lnk"
-  RMDir "$SMPROGRAMS\Codex++"
+  Delete "$DESKTOP\codx++.lnk"
+  Delete "$DESKTOP\codx++ 管理工具.lnk"
+  Delete "$DESKTOP\codx++ 绠＄悊宸ュ叿.lnk"
+  Delete "$SMPROGRAMS\codx++\codx++.lnk"
+  Delete "$SMPROGRAMS\codx++\codx++ 管理工具.lnk"
+  Delete "$SMPROGRAMS\codx++\codx++ 绠＄悊宸ュ叿.lnk"
+  Delete "$SMPROGRAMS\codx++\卸载 codx++.lnk"
+  RMDir "$SMPROGRAMS\codx++"
 
   Delete "$INSTDIR\codex-plus-plus.exe"
   Delete "$INSTDIR\codex-plus-plus-manager.exe"
   Delete "$INSTDIR\uninstall.exe"
   RMDir "$INSTDIR"
 
-  DeleteRegKey HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\Codex++"
-  DeleteRegKey HKCU "Software\Codex++"
+  DeleteRegKey HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\codx++"
+  DeleteRegKey HKCU "Software\codx++"
 SectionEnd

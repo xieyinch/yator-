@@ -33,7 +33,7 @@ Thank you for your interest in contributing to CodexPlusPlus!
 CodexPlusPlus/
 ├── crates/
 │   ├── codex-plus-data/    # Data handling and provider sync
-│   └── codex-plus-core/    # Core Codex++ logic
+│   └── codex-plus-core/    # Core codx++ logic
 └── README.md               # Project documentation
 ```
 

@@ -955,7 +955,7 @@ export function App() {
     const result = await run(() => call<PendingProviderImportResult>("load_pending_provider_import"));
     if (result) {
       setPendingProviderImport(result.pending);
-      if (!silent && !isSuccessStatus(result.status)) showResultNotice(t("Codex++ 导入"), result, { silentSuccess: true });
+      if (!silent && !isSuccessStatus(result.status)) showResultNotice(t("codx++ 导入"), result, { silentSuccess: true });
     }
     return result;
   };
@@ -966,7 +966,7 @@ export function App() {
       setPendingProviderImport(null);
       setSettings(result);
       setSettingsForm(normalizeSettings(result.settings));
-      showResultNotice(t("Codex++ 导入"), result);
+      showResultNotice(t("codx++ 导入"), result);
       await refreshCcsProviders(true);
     }
   };
@@ -975,7 +975,7 @@ export function App() {
     const result = await run(() => call<PendingProviderImportResult>("dismiss_pending_provider_import"));
     if (result) {
       setPendingProviderImport(null);
-      showResultNotice(t("Codex++ 导入"), result, { silentSuccess: true });
+      showResultNotice(t("codx++ 导入"), result, { silentSuccess: true });
     }
   };
 
@@ -1187,7 +1187,7 @@ export function App() {
   const restart = async () => {
     const result = await launchCommand("restart_codex_plus");
     if (result) {
-      showNotice(t("重启 Codex++"), result.message, result.status);
+      showNotice(t("重启 codx++"), result.message, result.status);
       await refreshOverview(true);
     }
   };
@@ -1839,7 +1839,7 @@ export function App() {
       void invoke("update_tray_labels", {
         showLabel: "Show window",
         quitLabel: "Quit",
-        windowTitle: "Codex++ Manager",
+        windowTitle: "codx++ 管理工具",
       });
     }
   }, []);
@@ -2033,7 +2033,7 @@ export function App() {
           <div className="brand-mark">C++</div>
           <div className="brand-copy">
             <div className="brand-title-row">
-              <div className="brand-title">Codex++</div>
+              <div className="brand-title">codx++</div>
               {hasUpdate ? (
                 <button
                   className="update-dot"
@@ -2095,9 +2095,9 @@ export function App() {
             >
               {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
             </Button>
-            <Button onClick={() => void actions.restart()} title={t("重启 Codex++")} variant="outline">
+            <Button onClick={() => void actions.restart()} title={t("重启 codx++")} variant="outline">
               <Rocket className="h-4 w-4" />
-              {t("重启 Codex++")}
+              {t("重启 codx++")}
             </Button>
             <Button onClick={() => void actions.refreshCurrent()} size="icon" title={t("刷新当前页面")} variant="outline">
               <RefreshCw className="h-4 w-4" />
@@ -2322,7 +2322,7 @@ function OverviewScreen({
                 <span className="eyebrow">{t("官方中转站")}</span>
                 <h2>JOJO Code</h2>
                 <p>
-                  {t("Codex++ 官方中转站，主打稳定接入和划算价格，支持 GPT-5.6 全系列、Fable 5、Sonnet 5、GPT-5.5、GPT-5.4、Claude Opus 4.8、Claude Opus 4.7、gpt-image-2 等模型与图像能力。")}
+                  {t("codx++ 官方中转站，主打稳定接入和划算价格，支持 GPT-5.6 全系列、Fable 5、Sonnet 5、GPT-5.5、GPT-5.4、Claude Opus 4.8、Claude Opus 4.7、gpt-image-2 等模型与图像能力。")}
                 </p>
               </div>
             </div>
@@ -2391,7 +2391,7 @@ function OverviewScreen({
           <Toolbar>
             <Button onClick={() => void actions.launch()}>
               <Rocket className="h-4 w-4" />
-              {t("启动 Codex++")}
+              {t("启动 codx++")}
             </Button>
             <Button variant="secondary" onClick={() => void actions.goLogs()}>
               {t("打开关于")}
@@ -2428,7 +2428,7 @@ function RelayEnvironmentScreen({ result, actions }: { result: RelayEnvironmentR
       passed: result ? proxyVariables.length === 0 : false,
       detail: result
         ? proxyVariables.length
-          ? tf("检测到代理环境变量：{0}。请清理后重新启动 Codex++。", [proxyVariableLabels.join(t("、"))])
+          ? tf("检测到代理环境变量：{0}。请清理后重新启动 codx++。", [proxyVariableLabels.join(t("、"))])
           : t("未检测到 HTTP_PROXY、HTTPS_PROXY、ALL_PROXY、NO_PROXY 或 FTP_PROXY。")
         : t("等待检测。"),
     },
@@ -2718,7 +2718,7 @@ function EnhanceScreen({
         String(remotePluginMarketplace.pluginCount),
         String(remotePluginMarketplace.skillCount),
       ])
-    : t("未发现本地缓存；点击按钮会从 Codex++ 内置快照释放并注册，无需官方账号预缓存。");
+    : t("未发现本地缓存；点击按钮会从 codx++ 内置快照释放并注册，无需官方账号预缓存。");
   return (
     <>
       <Panel>
@@ -2762,7 +2762,7 @@ function EnhanceScreen({
               <div className="feature-action-row">
                 <div>
                   <strong>{t("官方远端插件缓存")}</strong>
-                  <small>{t("使用 Codex++ 内置快照补齐远端插件，API 模式也可显示和安装 Product Design 插件。")}</small>
+                  <small>{t("使用 codx++ 内置快照补齐远端插件，API 模式也可显示和安装 Product Design 插件。")}</small>
                   <small>{remoteMarketplaceSummary}</small>
                 </div>
                 <Badge status={remotePluginMarketplace?.configRegistered ? "ok" : "not_checked"} />
@@ -2799,12 +2799,12 @@ function EnhanceScreen({
             <FeatureGroup title={t("界面与启动")} detail={t("控制语言、启动速度和 Codex 原生界面调整。")}>
               <FeatureToggle title={t("强制中文界面")} detail={t("强制启用 Codex App 内置 zh-CN 语言包，避免 Statsig/VPN 不通时回退英文。需重启 Codex 才能完整生效。")} checked={form.codexAppForceChineseLocale} disabled={!masterEnabled} onChange={(value) => setEnhanceFlag("codexAppForceChineseLocale", value)} />
               <FeatureToggle title={t("快速启动")} detail={t("默认关闭；无 VPN 时可开启，让 Statsig 初始化快速失败，减少启动时长。需重启 Codex 才生效。")} checked={form.codexAppFastStartup} disabled={!masterEnabled} onChange={(value) => setEnhanceFlag("codexAppFastStartup", value)} />
-              <FeatureToggle title={t("原生菜单栏位置")} detail={t("把 Codex++ 菜单插入 Codex 顶部原生菜单栏。")} checked={form.codexAppNativeMenuPlacement} disabled={!masterEnabled} onChange={(value) => setEnhanceFlag("codexAppNativeMenuPlacement", value)} />
+              <FeatureToggle title={t("原生菜单栏位置")} detail={t("把 codx++ 菜单插入 Codex 顶部原生菜单栏。")} checked={form.codexAppNativeMenuPlacement} disabled={!masterEnabled} onChange={(value) => setEnhanceFlag("codexAppNativeMenuPlacement", value)} />
               <FeatureToggle title={t("原生菜单汉化")} detail={t("启动时通过本地主进程调试端口汉化 Codex 原生菜单；不修改安装包。需重启 Codex 才生效。")} checked={form.codexAppNativeMenuLocalization} disabled={!masterEnabled} onChange={(value) => setEnhanceFlag("codexAppNativeMenuLocalization", value)} />
             </FeatureGroup>
             <FeatureGroup title={t("远程项目")} detail={t("连接 Zed Remote 和 upstream worktree 辅助能力。")}>
               <FeatureToggle title="Zed Remote open" detail={t("远程 SSH 文件引用可直接用 Zed Remote Development 打开。")} checked={form.codexAppZedRemoteOpen} disabled={!masterEnabled} onChange={(value) => setEnhanceFlag("codexAppZedRemoteOpen", value)} />
-              <FeatureToggle title={t("Zed 项目记录")} detail={t("维护 Codex++ 自己的远程项目最近列表。")} checked={form.zedRemoteProjectRegistryEnabled} disabled={!masterEnabled} onChange={(value) => setEnhanceFlag("zedRemoteProjectRegistryEnabled", value)} />
+              <FeatureToggle title={t("Zed 项目记录")} detail={t("维护 codx++ 自己的远程项目最近列表。")} checked={form.zedRemoteProjectRegistryEnabled} disabled={!masterEnabled} onChange={(value) => setEnhanceFlag("zedRemoteProjectRegistryEnabled", value)} />
               <FeatureToggle title={t("同步 Zed settings")} detail={t("高级选项，默认关闭；当前实现不主动改写 Zed settings。")} checked={form.zedRemoteSyncToZedSettings} disabled={!masterEnabled} onChange={(value) => setEnhanceFlag("zedRemoteSyncToZedSettings", value)} />
               <FeatureToggle title="Upstream worktree" detail={t("从最新 upstream 分支创建 Git worktree。")} checked={form.codexAppUpstreamWorktreeCreate} disabled={!masterEnabled} onChange={(value) => setEnhanceFlag("codexAppUpstreamWorktreeCreate", value)} />
             </FeatureGroup>
@@ -2874,7 +2874,7 @@ function ZedRemoteScreen({
   return (
     <>
       <Panel>
-        <CardHead title={t("Zed 远程项目")} detail={tf("{0} 个 Codex++ 可识别项目，默认策略：{1}", [allProjects.length, zedStrategyLabel(form.zedRemoteOpenStrategy)])} />
+        <CardHead title={t("Zed 远程项目")} detail={tf("{0} 个 codx++ 可识别项目，默认策略：{1}", [allProjects.length, zedStrategyLabel(form.zedRemoteOpenStrategy)])} />
         <CardContent>
           <div className="metric-list">
             <Metric label="Current" value={String(currentProjects.length)} />
@@ -2902,7 +2902,7 @@ function ZedRemoteScreen({
               />
               <span>
                 <strong>{t("记录最近打开")}</strong>
-                <small>{t("保存到 Codex++ state，不改写 Zed settings。")}</small>
+                <small>{t("保存到 codx++ state，不改写 Zed settings。")}</small>
               </span>
             </label>
           </div>
@@ -3179,7 +3179,7 @@ function SessionsScreen({
             />
             <span>
               <strong>{t("启动前自动修复历史会话")}</strong>
-              <small>{t("开启后，通过 Codex++ 启动 Codex 前自动整理一次旧对话的归属标记。")}</small>
+              <small>{t("开启后，通过 codx++ 启动 Codex 前自动整理一次旧对话的归属标记。")}</small>
             </span>
           </label>
           <Toolbar>
@@ -3292,7 +3292,7 @@ function MaintenanceScreen({
         <CardContent>
           <label className="check-row">
             <input checked={removeOwnedData} onChange={(event) => onRemoveOwnedDataChange(event.currentTarget.checked)} type="checkbox" />
-            <span>{t("卸载时移除 Codex++ 托管数据")}</span>
+            <span>{t("卸载时移除 codx++ 托管数据")}</span>
           </label>
           <Toolbar>
             <Button onClick={() => void actions.installEntrypoints()}>{t("安装入口")}</Button>
@@ -3302,7 +3302,7 @@ function MaintenanceScreen({
         </CardContent>
       </Panel>
       <Panel>
-        <CardHead title={t("自动接管")} detail={t("Watcher 用于保持 Codex++ 接管状态")} />
+        <CardHead title={t("自动接管")} detail={t("Watcher 用于保持 codx++ 接管状态")} />
         <CardContent>
           <Toolbar>
             <Button variant="secondary" onClick={() => void actions.installWatcher()}>{t("安装 watcher")}</Button>
@@ -3358,7 +3358,7 @@ function MaintenanceScreen({
             </Field>
           </div>
           <Toolbar>
-            <Button onClick={() => void actions.launch()}>{t("启动 Codex++")}</Button>
+            <Button onClick={() => void actions.launch()}>{t("启动 codx++")}</Button>
             <Button variant="secondary" onClick={() => void actions.saveManualCodexAppPath()}>
               {t("保存为默认路径")}
             </Button>
@@ -3387,10 +3387,10 @@ function AboutScreen({
   return (
     <>
       <Panel>
-        <CardHead title={t("关于 Codex++")} detail={t("本地 Codex 增强、管理工具和安装包维护")} />
+        <CardHead title={t("关于 codx++")} detail={t("本地 Codex 增强、管理工具和安装包维护")} />
         <CardContent>
           <div className="metric-list">
-            <Metric label={t("Codex++ 版本")} value={overview?.current_version ?? update?.currentVersion ?? "-"} />
+            <Metric label={t("codx++ 版本")} value={overview?.current_version ?? update?.currentVersion ?? "-"} />
             <Metric label={t("Codex 版本")} value={overview?.codex_version ?? t("未检测到")} />
             <Metric label={t("项目地址")} value="github.com/BigPizzaV3/CodexPlusPlus" />
           </div>
@@ -4417,7 +4417,7 @@ function RelayProfileEditor({
       {showApiFields && profile.protocol === "chatCompletions" ? (
         <div className="hint-line relay-protocol-hint">
           <MessageCircle className="h-4 w-4" />
-          <span>{t("此上游会通过本地 127.0.0.1:57321 转成 Responses API，需要从 Codex++ 启动 Codex。")}</span>
+          <span>{t("此上游会通过本地 127.0.0.1:57321 转成 Responses API，需要从 codx++ 启动 Codex。")}</span>
         </div>
       ) : null}
       <div className="hint-line relay-protocol-hint">
@@ -5192,8 +5192,8 @@ function PendingProviderImportDialog({
       <div className="modal-card provider-import-modal">
         <div className="modal-head">
           <div>
-            <h2>{t("导入 Codex++ 供应商")}</h2>
-            <p>{t("检测到来自网页的供应商配置导入请求，确认后会写入本机 Codex++ 管理工具。")}</p>
+            <h2>{t("导入 codx++ 供应商")}</h2>
+            <p>{t("检测到来自网页的供应商配置导入请求，确认后会写入本机 codx++ 管理工具。")}</p>
           </div>
           <button className="toast-close" onClick={onDismiss} type="button">×</button>
         </div>
@@ -6000,7 +6000,7 @@ function healthItems(overview: OverviewResult | null) {
       title: t("静默启动入口"),
       status: overview?.silent_shortcut.status ?? "not_checked",
       ok: overview?.silent_shortcut.status === "installed",
-      detail: overview?.silent_shortcut.path || t("缺少 Codex++ 静默启动快捷方式时可在安装维护页修复。"),
+      detail: overview?.silent_shortcut.path || t("缺少 codx++ 静默启动快捷方式时可在安装维护页修复。"),
     },
     {
       title: t("管理工具入口"),
