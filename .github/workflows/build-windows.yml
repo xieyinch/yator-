@@ -49,3 +49,18 @@ jobs:
           name: yator-windows-x64
           path: dist/yator-windows-x64.zip
           retention-days: 90
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: 'codx++ 纯净版'
+          tag_name: 'latest'
+          body: |
+            codx++ 纯净版 Windows 构建
+
+            - 已移除所有广告、推荐内容、赞助商信息和赞赏码
+            - `codex-plus-plus.exe` — 启动器
+            - `codex-plus-plus-manager.exe` — 管理工具
+          files: dist/yator-windows-x64.zip
+          prerelease: false
+          make_latest: true
